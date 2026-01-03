@@ -1,0 +1,53 @@
+package com.inventory.service;
+
+import com.inventory.entity.AuditAction;
+import com.inventory.entity.Product;
+import com.inventory.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class ProductServiceImpl implements ProductService {
+
+    private final ProductRepository productRepository;
+    private final AuditLogService auditLogService;
+
+    @Override
+    public Product createProduct(Product product, String performedBy) {
+        Product saved = productRepository.save(product);
+        auditLogService.log(AuditAction.CREATE, "Product", saved.getId(), performedBy, "Created product: " + saved.getName());
+        return saved;
+    }
+
+    @Override
+    public Product updateProduct(Long id, Product product, String performedBy) {
+        Product existing = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        existing.setName(product.getName());
+        existing.setPrice(product.getPrice());
+        existing.setUpdatedAt(product.getUpdatedAt());
+        Product saved = productRepository.save(existing);
+        auditLogService.log(AuditAction.UPDATE, "Product", saved.getId(), performedBy, "Updated product: " + saved.getName());
+        return saved;
+    }
+
+    @Override
+    public void deleteProduct(Long id, String performedBy) {
+        productRepository.deleteById(id);
+        auditLogService.log(AuditAction.DELETE, "Product", id, performedBy, "Deleted product");
+    }
+
+    @Override
+    public Optional<Product> getProductById(Long id) {
+        return productRepository.findById(id);
+    }
+
+    @Override
+    public List<Product> getAllProducts() {
+        return productRepository.findAll();
+    }
+}

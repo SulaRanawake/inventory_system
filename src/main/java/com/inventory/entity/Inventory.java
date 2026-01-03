@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "inventory")
 @Getter
@@ -24,4 +26,13 @@ public class Inventory {
 
     @Column(nullable = false)
     private Integer quantity;
+
+    @Column(name = "last_updated", nullable = false)
+    private LocalDateTime lastUpdated;
+
+    @PrePersist
+    @PreUpdate
+    protected void onUpdate() {
+        this.lastUpdated = LocalDateTime.now();
+    }
 }
